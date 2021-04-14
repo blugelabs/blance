@@ -25,8 +25,8 @@ var MaxIterationsPerPlan = 10
 
 func planNextMapEx(
 	prevMap PartitionMap,
-	nodesAll []string, // Union of nodesBefore, nodesToAdd, nodesToRemove.
-	nodesToRemove []string,
+	nodesAll, // Union of nodesBefore, nodesToAdd, nodesToRemove.
+	nodesToRemove,
 	nodesToAdd []string,
 	model PartitionModel,
 	opts PlanNextMapOptions,
@@ -75,9 +75,7 @@ func planNextMapInnerEx(
 	sort.Sort(&partitionSorter{a: nextPartitions})
 
 	// Key is stateName, value is {node: count}.
-	var stateNodeCounts map[string]map[string]int
-
-	stateNodeCounts = countStateNodes(prevMap, opts.PartitionWeights)
+	stateNodeCounts := countStateNodes(prevMap, opts.PartitionWeights)
 
 	// Helper function that returns an ordered array of candidates
 	// nodes to assign to a partition, ordered by best heuristic fit.
@@ -104,8 +102,7 @@ func planNextMapInnerEx(
 		nodePartitionCounts := make(map[string]int)
 		for _, nodeCounts := range stateNodeCounts {
 			for node, nodeCount := range nodeCounts {
-				nodePartitionCounts[node] =
-					nodePartitionCounts[node] + nodeCount
+				nodePartitionCounts[node] += nodeCount
 			}
 		}
 
@@ -215,7 +212,7 @@ func planNextMapInnerEx(
 				m = make(map[string]int)
 				nodeToNodeCounts[topPriorityNode] = m
 			}
-			m[candidateNode] = m[candidateNode] + 1
+			m[candidateNode]++
 		}
 
 		return candidateNodes
@@ -332,7 +329,7 @@ func adjustStateNodeCounts(stateNodeCounts map[string]map[string]int,
 			s = make(map[string]int)
 			stateNodeCounts[stateName] = s
 		}
-		s[node] = s[node] + amt
+		s[node] += amt
 	}
 }
 
@@ -362,7 +359,7 @@ func countStateNodes(
 						partitionWeight = w
 					}
 				}
-				s[node] = s[node] + partitionWeight
+				s[node] += partitionWeight
 			}
 		}
 	}
@@ -507,7 +504,7 @@ func (r *partitionSorter) Score(i int) []string {
 			partitionWeight = w
 		}
 	}
-	partitionWeightStr := fmt.Sprintf("%10d", 999999999-partitionWeight)
+	partitionWeightStr := fmt.Sprintf("%10d", heavierFirst-partitionWeight)
 
 	// First, favor partitions on nodes that are to-be-removed.
 	if r.prevMap != nil &&
@@ -524,13 +521,17 @@ func (r *partitionSorter) Score(i int) []string {
 	// newly added nodes yet for any state.
 	if r.nodesToAdd != nil {
 		fnbs := flattenNodesByState(r.a[i].NodesByState)
-		if len(StringsIntersectStrings(fnbs, r.nodesToAdd)) <= 0 {
+		if len(StringsIntersectStrings(fnbs, r.nodesToAdd)) == 0 {
 			return []string{"1", partitionWeightStr, partitionNameStr}
 		}
 	}
 
 	return []string{"2", partitionWeightStr, partitionNameStr}
 }
+
+// heavierFirst - where the nine 9's magic number is to to allow heavier
+// partitions to come first
+const heavierFirst = 999999999
 
 // --------------------------------------------------------
 
@@ -606,17 +607,17 @@ func (ns *nodeSorter) Score(i int) float64 {
 		}
 	}
 
-	r = r + lowerPriorityBalanceFactor
-	r = r + filledFactor
+	r += lowerPriorityBalanceFactor
+	r += filledFactor
 
 	if ns.nodeWeights != nil {
 		w, exists := ns.nodeWeights[node]
 		if exists && w > 0 {
-			r = r / float64(w)
+			r /= float64(w)
 		}
 	}
 
-	r = r - currentFactor
+	r -= currentFactor
 
 	return r
 }
@@ -646,7 +647,7 @@ func mapParentsToMapChildren(
 // excludeLevel of 1 means include nodes with the same grandparent
 // (level 2), but exclude nodes with the same parent (level 1).
 func includeExcludeNodes(node string,
-	includeLevel int,
+	includeLevel,
 	excludeLevel int,
 	mapParents map[string]string,
 	mapChildren map[string][]string) []string {
@@ -669,7 +670,7 @@ func findAncestor(node string,
 
 func findLeaves(node string, mapChildren map[string][]string) []string {
 	children := mapChildren[node]
-	if len(children) <= 0 {
+	if len(children) == 0 {
 		return []string{node} // Node is a leaf.
 	}
 	rv := make([]string, 0)

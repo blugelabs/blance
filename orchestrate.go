@@ -244,7 +244,7 @@ func OrchestrateMoves(
 	model PartitionModel,
 	options OrchestratorOptions,
 	nodesAll []string,
-	begMap PartitionMap,
+	begMap,
 	endMap PartitionMap,
 	assignPartitions AssignPartitionsFunc,
 	findMove FindMoveFunc) (*Orchestrator, error) {
@@ -527,7 +527,7 @@ func (o *Orchestrator) runSupplyMoves(stopCh chan struct{},
 
 		o.m.Unlock()
 
-		if len(availableMoves) <= 0 {
+		if len(availableMoves) == 0 {
 			break
 		}
 

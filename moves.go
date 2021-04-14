@@ -43,7 +43,7 @@ type NodeStateOp struct {
 // favoring partition availability across multiple nodes during moves.
 func CalcPartitionMoves(
 	states []string,
-	begNodesByState map[string][]string,
+	begNodesByState,
 	endNodesByState map[string][]string,
 	favorMinNodes bool,
 ) []NodeStateOp {
@@ -123,7 +123,7 @@ func CalcPartitionMoves(
 
 func findStateChanges(begStateIdx, endStateIdx int,
 	state string, states []string,
-	begNodesByState map[string][]string,
+	begNodesByState,
 	endNodesByState map[string][]string) (rv []string) {
 	for _, node := range endNodesByState[state] {
 		for i := begStateIdx; i < endStateIdx; i++ {

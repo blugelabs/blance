@@ -1569,7 +1569,7 @@ func testVisTestCases(t *testing.T, tests []VisTestCase) {
 			}
 			prevMap[partitionName] = partition
 			row := fromToCells{}
-			for j := 0; j < len(from); j = j + cellLength {
+			for j := 0; j < len(from); j += cellLength {
 				row = append(row, &fromToCell{
 					entry:    from[j : j+cellLength],
 					nodeName: nodeNames[j/cellLength],
@@ -1591,7 +1591,7 @@ func testVisTestCases(t *testing.T, tests []VisTestCase) {
 			}
 			expMap[partitionName] = partition
 			row = fromToCells{}
-			for j := 0; j < len(to); j = j + cellLength {
+			for j := 0; j < len(to); j += cellLength {
 				row = append(row, &fromToCell{
 					entry:    to[j : j+cellLength],
 					nodeName: nodeNames[j/cellLength],

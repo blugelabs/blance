@@ -111,13 +111,13 @@ type HierarchyRule struct {
 // PlanNextMapEx() and PlanNextMapOptions API's.
 func PlanNextMap(
 	prevMap PartitionMap,
-	nodesAll []string, // Union of nodesBefore, nodesToAdd, nodesToRemove.
-	nodesToRemove []string,
+	nodesAll, // Union of nodesBefore, nodesToAdd, nodesToRemove.
+	nodesToRemove,
 	nodesToAdd []string,
 	model PartitionModel,
-	modelStateConstraints map[string]int, // Keyed by stateName.
-	partitionWeights map[string]int, // Keyed by partitionName.
-	stateStickiness map[string]int, // Keyed by stateName.
+	modelStateConstraints, // Keyed by stateName.
+	partitionWeights, // Keyed by partitionName.
+	stateStickiness, // Keyed by stateName.
 	nodeWeights map[string]int, // Keyed by node.
 	nodeHierarchy map[string]string, // Keyed by node, value is node's parent.
 	hierarchyRules HierarchyRules,
@@ -146,8 +146,8 @@ func PlanNextMap(
 // may reach more stabilization or balanced'ness.
 func PlanNextMapEx(
 	prevMap PartitionMap,
-	nodesAll []string, // Union of nodesBefore, nodesToAdd, nodesToRemove.
-	nodesToRemove []string,
+	nodesAll, // Union of nodesBefore, nodesToAdd, nodesToRemove.
+	nodesToRemove,
 	nodesToAdd []string,
 	model PartitionModel,
 	options PlanNextMapOptions) (nextMap PartitionMap, warnings []string) {

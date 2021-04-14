@@ -106,7 +106,7 @@ func TestOrchestrateErrAssignPartitionFunc(t *testing.T) {
 		t.Errorf("expected progress")
 	}
 
-	if len(lastProgress.Errors) <= 0 {
+	if len(lastProgress.Errors) == 0 {
 		t.Errorf("expected errs")
 	}
 
@@ -118,7 +118,6 @@ func TestOrchestrateErrAssignPartitionFunc(t *testing.T) {
 }
 
 func testMkFuncs() (
-	map[string]map[string]string,
 	map[string][]assignPartitionRec,
 	AssignPartitionsFunc,
 ) {
@@ -150,7 +149,7 @@ func testMkFuncs() (
 		return nil
 	}
 
-	return currStates, assignPartitionRecs, assignPartitionsFunc
+	return assignPartitionRecs, assignPartitionsFunc
 }
 
 func TestOrchestrateEarlyPauseResume(t *testing.T) {
@@ -162,7 +161,7 @@ func TestOrchestrateMidPauseResume(t *testing.T) {
 }
 
 func testOrchestratePauseResume(t *testing.T, numProgress int) {
-	_, _, assignPartitionsFunc := testMkFuncs()
+	_, assignPartitionsFunc := testMkFuncs()
 
 	pauseCh := make(chan struct{})
 
@@ -233,12 +232,27 @@ func testOrchestratePauseResume(t *testing.T, numProgress int) {
 		<-o.ProgressCh()
 	}
 
-	o.PauseNewAssignments()
-	o.PauseNewAssignments()
-	o.PauseNewAssignments()
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	o.ResumeNewAssignments()
-	o.ResumeNewAssignments()
+	err = o.ResumeNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.ResumeNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	close(pauseCh)
 
@@ -249,7 +263,10 @@ func testOrchestratePauseResume(t *testing.T, numProgress int) {
 		gotProgress++
 		lastProgress = progress
 
-		o.ResumeNewAssignments()
+		err = o.ResumeNewAssignments()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	o.Stop()
@@ -277,7 +294,7 @@ func TestOrchestratePauseResumeIntoMovesSupplier(t *testing.T) {
 
 func testOrchestratePauseResumeIntoMovesSupplier(t *testing.T,
 	numProgressBeforePause, numFastAssignPartitionFuncs int) {
-	_, _, assignPartitionsFunc := testMkFuncs()
+	_, assignPartitionsFunc := testMkFuncs()
 
 	var m sync.Mutex
 	numAssignPartitionFuncs := 0
@@ -345,12 +362,27 @@ func testOrchestratePauseResumeIntoMovesSupplier(t *testing.T,
 		<-o.ProgressCh()
 	}
 
-	o.PauseNewAssignments()
-	o.PauseNewAssignments()
-	o.PauseNewAssignments()
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.PauseNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	o.ResumeNewAssignments()
-	o.ResumeNewAssignments()
+	err = o.ResumeNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = o.ResumeNewAssignments()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	close(slowCh)
 
@@ -361,7 +393,10 @@ func testOrchestratePauseResumeIntoMovesSupplier(t *testing.T,
 		gotProgress++
 		lastProgress = progress
 
-		o.ResumeNewAssignments()
+		err = o.ResumeNewAssignments()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	o.Stop()
@@ -383,7 +418,7 @@ func testOrchestratePauseResumeIntoMovesSupplier(t *testing.T,
 }
 
 func TestOrchestrateEarlyStop(t *testing.T) {
-	_, _, assignPartitionFunc := testMkFuncs()
+	_, assignPartitionFunc := testMkFuncs()
 
 	o, err := OrchestrateMoves(
 		mrPartitionModel,
@@ -959,7 +994,9 @@ func TestOrchestrateConcurrentMoves(t *testing.T) {
 	}
 
 	for testi, test := range tests {
-		_, _, assignPartitionsFunc := testMkFuncs()
+		testi := testi
+		test := test
+		_, assignPartitionsFunc := testMkFuncs()
 
 		if !test.skip {
 			test.assignPartitionsFunc = func(stopCh chan struct{},
@@ -994,7 +1031,10 @@ func TestOrchestrateConcurrentMoves(t *testing.T) {
 						testi, test.label, test.expMoveStates, ops)
 				}
 
-				assignPartitionsFunc(stopCh, node, partitions, states, ops)
+				err := assignPartitionsFunc(stopCh, node, partitions, states, ops)
+				if err != nil {
+					t.Fatal(err)
+				}
 				return nil
 			}
 		}
@@ -1729,7 +1769,7 @@ func TestOrchestrateMoves(t *testing.T) {
 			continue
 		}
 
-		_, assignPartitionRecs, assignPartitionFunc := testMkFuncs()
+		assignPartitionRecs, assignPartitionFunc := testMkFuncs()
 
 		o, err := OrchestrateMoves(
 			test.partitionModel,
